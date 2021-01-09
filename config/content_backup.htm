@@ -36,10 +36,112 @@
 <p>pdf1_29</p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/fbRzil_0mfc" width="560"></iframe></p>
 <h2>w7</h2>
-<h3>ANSI C</h3>
+<h3>試用ANSI C</h3>
 <p>阻尼=1</p>
 <p><img alt="" height="480" src="/images/test.png" width="640"/></p>
 <p><a href="https://drive.google.com/file/d/14zv2ZhHbZjYLV8QFJ53_gPVtcFq1epVi/view?usp=sharing">file</a></p>
-<div id="gtx-trans" style="position: absolute; left: -8px; top: 19301.5px;">
-<div class="gtx-trans-icon"></div>
-</div>
+<h2>w8</h2>
+<p>NX API 試用</p>
+<p>1.把路徑改成自想要的路徑</p>
+<p><a href="/downloads/111.py">111.py</a></p>
+<pre class="brush:py;auto-links:false;toolbar:false cc_cursor" contenteditable="false"># nx_open_part.py
+# 導入 NXOpen
+import NXOpen
+import NXOpen.UF
+import NXOpen.Gateway
+   
+def main():
+    # 取得目前開啟的工作階段
+    theSession = NXOpen.Session.GetSession()
+    theUfSession = NXOpen.UF.UFSession.GetUFSession()
+      
+    # 建立 ListingWindow
+    listWin= theSession.ListingWindow
+    # 開啟零件檔案
+    basePart1 = theSession.Parts.OpenBaseDisplay("y:/tmp/block.prt")
+    workPart = theSession.Parts.Work
+    unit1 = workPart.UnitCollection.FindObject("MilliMeter")
+    # height
+    p7 = workPart.Expressions.FindObject("p7")
+    # width
+    p8 = workPart.Expressions.FindObject("p8")
+    # length
+    p9 = workPart.Expressions.FindObject("p9")
+    workPart.Expressions.EditWithUnits(p7, unit1, "30")
+    workPart.Expressions.EditWithUnits(p8, unit1, "60")
+    workPart.Expressions.EditWithUnits(p9, unit1, "90")
+    theSession.UpdateManager.DoUpdate(0)
+    #saveStatus1 = workPart.SaveAs("y:/tmp/block_new.prt")
+    #saveStatus1.Dispose()
+    # initialize list to hold bodies
+    theBodyTags = []
+   
+    for x in workPart.Bodies:
+        if x.IsSolidBody:
+            theBodyTags.append(x.Tag)
+      
+    # 準備輸出 ASCII 格式 STL 零件檔案
+    sTLCreator1 = theSession.DexManager.CreateStlCreator()
+    sTLCreator1.AutoNormalGen = True
+    sTLCreator1.ChordalTol = 0.08
+    sTLCreator1.AdjacencyTol = 0.08
+    sTLCreator1.OutputFile = "y:\\tmp\\block_ascii.stl"
+    # Binary STL: NXOpen.STLCreatorOutputTypeEnum.Binary
+    sTLCreator1.OutputType = NXOpen.STLCreatorOutputTypeEnum.Text
+    # 已知 body1 命名
+    body1 = workPart.Bodies.FindObject("EXTRUDE(2)")
+    added1 = sTLCreator1.ExportSelectionBlock.Add(body1)
+    nXObject1 = sTLCreator1.Commit()
+    sTLCreator1.Destroy()
+  
+    # 開啟所建立的 ListingWindow
+    listWin.Open()
+    listWin.WriteLine("number of solid bodies: " + str(len(theBodyTags)))
+   
+    (massProps, Stats) = theUfSession.Modeling.AskMassProps3d(theBodyTags, len(theBodyTags), 1, 4, .03, 1, [0.99,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+    listWin.WriteLine("units: kg, mm")
+    listWin.WriteLine("surface area: " + str(massProps[0]))
+    listWin.WriteLine("volume: " + str(massProps[1]*1E9))
+    # 在 ListingWindow 中寫入字串
+    listWin.WriteLine("Hello, NXOpen")
+    listWin.Close()
+     
+    # 將零件檔案 fit 之後, export 出 png 檔案
+    theUI = NXOpen.UI.GetUI()
+    imageExportBuilder1 = theUI.CreateImageExportBuilder()
+ 
+    custombackgroundcolor1 = [None] * 3
+    custombackgroundcolor1[0] = 1.0
+    custombackgroundcolor1[1] = 1.0
+    custombackgroundcolor1[2] = 1.0
+ 
+    imageExportBuilder1.SetCustomBackgroundColor(custombackgroundcolor1)
+    imageExportBuilder1.FileFormat = NXOpen.Gateway.ImageExportBuilder.FileFormats.Png
+    imageExportBuilder1.FileName = "y:\\tmp\\block.png"
+ 
+    imageExportBuilder1.BackgroundOption = NXOpen.Gateway.ImageExportBuilder.BackgroundOptions.Original
+ 
+    imageExportBuilder1.EnhanceEdges = False
+    imageExportBuilder1.RegionMode = False
+    # fit view 後 commit export png
+    workPart.ModelingViews.WorkView.Fit()
+    nXObject6 = imageExportBuilder1.Commit()
+ 
+    imageExportBuilder1.Destroy()
+      
+if __name__ == "__main__":
+    main()</pre>
+<p></p>
+<p>2.開啟NX隨身版，找到journal後Play程式，得到以下檔案</p>
+<p><a href="/downloads/block.prt">block.prt</a></p>
+<p><a href="/downloads/block_ascii.stl.txt">block_ascii.stl.txt</a></p>
+<p><img alt="" height="209" src="/images/block.png" width="400"/></p>
+<h1>筆記</h1>
+<p>如何新增檔案連結</p>
+<p><img alt="" height="27" src="/images/111py2.png" width="81"/></p>
+<p>1.將檔案放入倉儲近端的downloads資料夾。</p>
+<p><img alt="" height="235" src="/images/download.png" width="393"/></p>
+<p>2.到編輯網頁點edit link</p>
+<p><img alt="" height="90" src="/images/link.png" width="254"/></p>
+<p>3.點選檔案。</p>
+<p><img alt="" height="165" src="/images/111py.png" width="267"/><a href="/downloads/111.py"></a></p>
